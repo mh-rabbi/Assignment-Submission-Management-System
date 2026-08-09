@@ -371,3 +371,29 @@ Priority business rules to cover with xUnit (using EF Core InMemory provider for
 - **Late submissions** are a per-assignment teacher decision (`AllowLateSubmission`), not a global rule.
 - **File storage is local disk** (`wwwroot/uploads`, Docker volume-mounted) rather than cloud storage, to keep local setup dependency-free per the assessment brief.
 - **Migrations auto-apply on container startup** for zero-friction evaluator setup.
+
+
+## 6. Agent Working Context (.context/PROGRESS.md)
+
+Maintain a running log at `/.context/PROGRESS.md` (create if missing) as 
+the single source of truth for project state across agent sessions. 
+Update it after every phase or significant step. Format:
+
+## Phase Status
+- [x] Phase 0 — Scaffolding — DONE (2026-08-09)
+- [x] Phase 0.5 — Dockerization — DONE (2026-08-09)
+- [ ] Phase 1 — Database Layer — IN PROGRESS
+- [ ] Phase 2 — Auth
+- ...
+
+## Last Session Summary
+<what was done, files touched, last command run>
+
+## Deviations From Plan
+<anything that diverged from IMPLEMENTATION_PLAN.md and why>
+
+## Known Issues / TODO
+<blockers, unfinished edge cases, things to revisit>
+
+## How to Verify Current State
+<e.g. `docker compose up --build` then `curl localhost:8080/swagger`>
