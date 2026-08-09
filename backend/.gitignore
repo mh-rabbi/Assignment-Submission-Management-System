@@ -1,0 +1,98 @@
+# ==========================
+# Build outputs
+# ==========================
+bin/
+obj/
+out/
+
+# ==========================
+# User-specific files
+# ==========================
+*.user
+*.rsuser
+*.suo
+*.userosscache
+*.sln.docstates
+
+# ==========================
+# Visual Studio / VS Code
+# ==========================
+.vs/
+.vscode/*
+
+# Keep shared VS Code settings (optional)
+!.vscode/settings.json
+!.vscode/extensions.json
+!.vscode/tasks.json
+!.vscode/launch.json
+
+# ==========================
+# Rider / JetBrains
+# ==========================
+.idea/
+
+# ==========================
+# Logs
+# ==========================
+*.log
+logs/
+
+# ==========================
+# NuGet
+# ==========================
+*.nupkg
+packages/
+
+# ==========================
+# Entity Framework
+# ==========================
+*.dbmdl
+
+# ==========================
+# Environment variables
+# ==========================
+.env
+.env.*
+!.env.example
+
+# ==========================
+# Secrets
+# ==========================
+secrets.json
+
+# ==========================
+# Certificates
+# ==========================
+*.pfx
+*.pem
+*.key
+*.crt
+
+# ==========================
+# Docker
+# ==========================
+docker-data/
+postgres-data/
+
+# ==========================
+# OS files
+# ==========================
+.DS_Store
+Thumbs.db
+
+# ==========================
+# Coverage / Testing
+# ==========================
+coverage/
+TestResults/
+
+# ==========================
+# Publish output
+# ==========================
+publish/
+
+# ==========================
+# Temporary files
+# ==========================
+*.tmp
+*.cache

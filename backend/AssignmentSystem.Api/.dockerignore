@@ -1,0 +1,10 @@
+bin/
+obj/
+.git/
+.vscode/
+.vs/
+*.user
+*.suo
+*.userosscache
+*.sln.docstates
+.env
