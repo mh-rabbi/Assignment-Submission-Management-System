@@ -1,4 +1,12 @@
+using AssignmentSystem.Api.Data;
+using AssignmentSystem.Api.Data.Seed;
+using AssignmentSystem.Api.Middleware;
+using AssignmentSystem.Api.Services;
+using AssignmentSystem.Api.Services.Interfaces;
+using FluentValidation;
+using FluentValidation.AspNetCore;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
 using Microsoft.OpenApi.Models;
 using Serilog;
@@ -15,6 +23,27 @@ Log.Logger = new LoggerConfiguration()
     .CreateLogger();
 
 builder.Host.UseSerilog();
+
+// ─── Database (EF Core + PostgreSQL) ──────────────────────────────────────
+var connectionString = builder.Configuration.GetConnectionString("DefaultConnection")
+    ?? throw new InvalidOperationException("ConnectionStrings:DefaultConnection is not configured.");
+
+builder.Services.AddDbContext<AppDbContext>(options =>
+    options.UseNpgsql(connectionString));
+
+// ─── Application Services ─────────────────────────────────────────────────
+builder.Services.AddScoped<IAuthService, AuthService>();
+builder.Services.AddScoped<IUserService, UserService>();
+builder.Services.AddScoped<IClassService, ClassService>();
+builder.Services.AddScoped<ISubjectService, SubjectService>();
+builder.Services.AddScoped<ITeacherAssignmentService, TeacherAssignmentService>();
+builder.Services.AddScoped<IAssignmentService, AssignmentService>();
+builder.Services.AddScoped<ISubmissionService, SubmissionService>();
+builder.Services.AddScoped<IFileStorageService, FileStorageService>();
+
+// ─── FluentValidation ──────────────────────────────────────────────────────
+builder.Services.AddFluentValidationAutoValidation();
+builder.Services.AddValidatorsFromAssemblyContaining<Program>();
 
 // ─── Controllers ───────────────────────────────────────────────────────────
 builder.Services.AddControllers();
@@ -91,6 +120,17 @@ builder.Services.AddAuthorization();
 // ─── Build ─────────────────────────────────────────────────────────────────
 var app = builder.Build();
 
+// ─── Auto migrate + seed on startup ───────────────────────────────────────
+using (var scope = app.Services.CreateScope())
+{
+    var db = scope.ServiceProvider.GetRequiredService<AppDbContext>();
+    db.Database.Migrate();
+    await DataSeeder.SeedAsync(db);
+}
+
+// ─── Exception Middleware ──────────────────────────────────────────────────
+app.UseMiddleware<ExceptionMiddleware>();
+
 // ─── Middleware pipeline ────────────────────────────────────────────────────
 if (app.Environment.IsDevelopment() || app.Environment.IsEnvironment("Docker"))
 {
@@ -104,7 +144,6 @@ if (app.Environment.IsDevelopment() || app.Environment.IsEnvironment("Docker"))
 
 app.UseSerilogRequestLogging();
 
-// Note: In Docker/HTTP-only mode, skip HTTPS redirection
 if (!app.Environment.IsEnvironment("Docker"))
 {
     app.UseHttpsRedirection();
