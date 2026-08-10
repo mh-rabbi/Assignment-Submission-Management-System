@@ -113,6 +113,12 @@ Build the backend for a role-based Assignment & Submission Management System for
 6. Every submission edit: snapshot the **previous** state into `SubmissionHistory` before overwriting `Submission`.
 7. Grading (`Marks`/`Feedback`) settable only by the Teacher who owns the Assignment (or Admin). Sets `Status = Graded`.
 8. `NotSubmitted` is never stored — it's the absence of a `Submission` row for a given (Assignment, Student).
+9. **Assignment creation by Admin:** Admin may create an Assignment on behalf of any Teacher. `CreateAssignmentDto` includes an optional `TeacherId` field. If the caller is a Teacher, any `TeacherId` in the body is ignored — the caller's own id is always used. If the caller is Admin, `TeacherId` is **required** in the body (400 if missing) and must reference a user with `Role == Teacher`. The resolved `TeacherId` is then validated against `TeacherSubjectClass` exactly as usual (Rule #2).
+10. **Soft-deleted visibility:** `GET` endpoints for Classes and Subjects (both single-record and list) filter to `IsActive == true` only. A `GET /{id}` on an inactive or nonexistent Class/Subject returns `404 NotFound` — soft-deleted records are invisible through the public read API, not just flagged `isActive: false`.
+11. **Login failures use 401, not 403:** Invalid credentials and inactive/nonexistent-user login both raise a dedicated authentication exception (e.g. `InvalidCredentialsException`), mapped to `401 Unauthorized`. Reserve `403 Forbidden` for authenticated-but-not-authorized cases (wrong role, not the owning Teacher, etc.).
+12. **Name uniqueness:** `Classes.Name` and `Subjects.Name` must be unique among active records (case-insensitive). Enforced both via a unique index (scoped to `IsActive = true`) and a service-layer pre-check; violations return `409 Conflict`.
+13. **File uploads validated even when small:** Any non-null uploaded file (including zero-byte) must pass through `FileStorageService` validation — never skipped based on `file.Length`.
+14. **No raw file paths in API responses:** Submission DTOs never expose the server's physical `FilePath`. Responses include a relative download URL (`/api/submissions/{id}/file`) instead.
 
 ---
 
@@ -290,20 +296,20 @@ Configure `appsettings.json` connection string to be overridable via `Connection
 
 ### Phase 2 — Authentication & Authorization
 1. `AuthController`: `POST /api/auth/register` (optional — Admin-only creation might be preferred, but include for testing), `POST /api/auth/login`.
-2. `AuthService`: verify email/password (BCrypt.Verify), generate JWT with claims: `sub` (UserId), `email`, `role`, `classId` (if Student).
+2. `AuthService`: verify email/password (BCrypt.Verify), generate JWT with claims: `sub` (UserId), `email`, `role`, `classId` (if Student). Login failures (bad credentials, inactive/nonexistent user) throw a dedicated `InvalidCredentialsException` mapped to `401` — not the generic `UnauthorizedAccessException` used for `403` authorization failures (Business Rule #11). Student registration validates `ClassId` references an existing active Class before insert, returning `400` if not (avoids raw FK-violation `500`s).
 3. JWT config in `Program.cs`: `AddAuthentication(JwtBearerDefaults.AuthenticationScheme).AddJwtBearer(...)` reading `JWT_SECRET`/`JWT_ISSUER`/`JWT_AUDIENCE` from config. Add `app.UseAuthentication()` + `app.UseAuthorization()` in correct order (before `UseAuthorization`, after `UseRouting`).
 4. Test via Swagger: login as seeded Admin → copy token → authorize → hit a protected endpoint.
 
 ### Phase 3 — Admin Module
 - `UsersController` (Admin-only `[Authorize(Roles = "Admin")]`): CRUD for Users, soft delete (`IsActive = false`, never hard delete).
-- `ClassesController`: CRUD for Classes, soft delete.
-- `SubjectsController`: CRUD for Subjects, soft delete.
+- `ClassesController`: CRUD for Classes, soft delete. All GETs filter `IsActive == true` (see Business Rule #10); Create rejects duplicate active `Name` (case-insensitive) with `409` (Business Rule #12).
+- `SubjectsController`: CRUD for Subjects, soft delete. Same `IsActive` GET-filtering and duplicate-name `409` rules as Classes.
 - `TeacherAssignmentsController`: Admin assigns Teacher to (Subject, Class) — create/list/delete `TeacherSubjectClass` rows. Reject duplicate via the unique constraint (catch `DbUpdateException`, return 409).
 - Admin-only endpoints to view ALL assignments and ALL submissions across the system (no ownership filter).
 
 ### Phase 4 — Teacher Module
 - `AssignmentsController` (Teacher + Admin):
-  - `POST /api/assignments`: validate `(TeacherId, SubjectId, ClassId)` exists in `TeacherSubjectClass` before insert. Default `Status = Draft`.
+  - `POST /api/assignments`: validate `(TeacherId, SubjectId, ClassId)` exists in `TeacherSubjectClass` before insert. Default `Status = Draft`. Supports Admin-on-behalf-of-Teacher creation per Business Rule #9 (`TeacherId` in body required for Admin callers, ignored for Teacher callers).
   - `PUT /api/assignments/{id}`: only the owning Teacher (or Admin) may edit.
   - `PATCH /api/assignments/{id}/status`: transition Draft→Published→Closed.
   - `DELETE /api/assignments/{id}`: only owning Teacher/Admin.
@@ -322,9 +328,10 @@ Configure `appsettings.json` connection string to be overridable via `Connection
 - `GET /api/submissions/mine`: Student views own submission status/marks/feedback for a given assignment.
 
 ### Phase 6 — File Upload
-- `IFileStorageService` / `FileStorageService`: save `IFormFile` to `wwwroot/uploads/{assignmentId}/{studentId}/{guid}_{filename}`, validate extension whitelist (`.pdf, .docx, .doc, .zip, .png, .jpg, .jpeg`) and max size (e.g. 10MB).
+- `IFileStorageService` / `FileStorageService`: save `IFormFile` to `wwwroot/uploads/{assignmentId}/{studentId}/{guid}_{filename}`, validate extension whitelist (`.pdf, .docx, .doc, .zip, .png, .jpg, .jpeg`) and max size (e.g. 10MB). Validation runs for **any** non-null file, including zero-byte uploads — never skip based on `file.Length` (Business Rule #13).
 - Wire into `POST /api/submissions` as `multipart/form-data` (Content as form field + optional File).
 - Secure file serving: do NOT expose `wwwroot/uploads` as a static/anonymous folder. Instead, add `GET /api/submissions/{id}/file` controller action that checks authorization (owning Student, owning Teacher, or Admin) then returns `PhysicalFile(...)`.
+- Submission DTOs never return the server's physical `FilePath` — expose a relative download URL (`/api/submissions/{id}/file`) instead (Business Rule #14).
 
 ### Phase 7 — Validation & Error Handling
 - FluentValidation validator per DTO (required fields, string lengths, `Deadline` must be future date on create, `MaxMarks > 0`, `Marks <= Assignment.MaxMarks`, email format, password min length).
@@ -361,30 +368,17 @@ Priority business rules to cover with xUnit (using EF Core InMemory provider for
 
 ---
 
-## 5. Key Design Decisions & Assumptions (for README)
+## 5. Agent Working Context (.context/PROGRESS.md)
 
-- **Single role per user** via enum, not separate role tables — simplifies JWT/RBAC.
-- **Subject is a standalone catalog entity**; the Teacher↔Subject↔Class relationship lives only in `TeacherSubjectClass` to avoid data-integrity conflicts between two independent FK paths.
-- **No repository abstraction layer** — EF Core's `DbContext`/`DbSet` already serves that role; Services inject `AppDbContext` directly.
-- **Soft delete** (`IsActive`) on Users/Classes/Subjects to preserve academic history; hard `Restrict` FK behavior elsewhere to prevent orphaned records.
-- **One current submission row per student per assignment**, with full edit history in `SubmissionHistory` for audit purposes.
-- **Late submissions** are a per-assignment teacher decision (`AllowLateSubmission`), not a global rule.
-- **File storage is local disk** (`wwwroot/uploads`, Docker volume-mounted) rather than cloud storage, to keep local setup dependency-free per the assessment brief.
-- **Migrations auto-apply on container startup** for zero-friction evaluator setup.
+Maintain a running log at `/.context/PROGRESS.md` (create if missing) as the single source of truth for project state across agent sessions — any agent picking up this repo with no prior conversation history must be able to read this file and know exactly what's built, what's next, and what deviated from this plan. Update it after every phase or significant chunk of work (including bugfix passes). Format:
 
-
-## 6. Agent Working Context (.context/PROGRESS.md)
-
-Maintain a running log at `/.context/PROGRESS.md` (create if missing) as 
-the single source of truth for project state across agent sessions. 
-Update it after every phase or significant step. Format:
-
+```markdown
 ## Phase Status
-- [x] Phase 0 — Scaffolding — DONE (2026-08-09)
-- [x] Phase 0.5 — Dockerization — DONE (2026-08-09)
+- [x] Phase 0 — Scaffolding — DONE (date)
+- [x] Phase 0.5 — Dockerization — DONE (date)
 - [ ] Phase 1 — Database Layer — IN PROGRESS
 - [ ] Phase 2 — Auth
-- ...
+...
 
 ## Last Session Summary
 <what was done, files touched, last command run>
@@ -397,3 +391,21 @@ Update it after every phase or significant step. Format:
 
 ## How to Verify Current State
 <e.g. `docker compose up --build` then `curl localhost:8080/swagger`>
+```
+
+Before starting any work, check if `/.context/PROGRESS.md` exists. If it does, read it fully and resume from where it left off rather than restarting or re-doing completed phases.
+
+---
+
+## 6. Key Design Decisions & Assumptions (for README)
+
+- **Single role per user** via enum, not separate role tables — simplifies JWT/RBAC.
+- **Subject is a standalone catalog entity**; the Teacher↔Subject↔Class relationship lives only in `TeacherSubjectClass` to avoid data-integrity conflicts between two independent FK paths.
+- **No repository abstraction layer** — EF Core's `DbContext`/`DbSet` already serves that role; Services inject `AppDbContext` directly.
+- **Soft delete** (`IsActive`) on Users/Classes/Subjects to preserve academic history; hard `Restrict` FK behavior elsewhere to prevent orphaned records.
+- **One current submission row per student per assignment**, with full edit history in `SubmissionHistory` for audit purposes.
+- **Late submissions** are a per-assignment teacher decision (`AllowLateSubmission`), not a global rule.
+- **File storage is local disk** (`wwwroot/uploads`, Docker volume-mounted) rather than cloud storage, to keep local setup dependency-free per the assessment brief.
+- **Migrations auto-apply on container startup** for zero-friction evaluator setup.
+- **Admin can create Assignments on behalf of any Teacher** (explicit `TeacherId` required in the request body for Admin callers) rather than being blocked from the endpoint entirely.
+- **Soft-deleted Classes/Subjects are fully hidden from read endpoints** (404 on GET), not merely flagged inactive while still visible — closer to how end users expect "delete" to behave.
