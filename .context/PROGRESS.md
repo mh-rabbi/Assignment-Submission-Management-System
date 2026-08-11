@@ -16,18 +16,18 @@
 - [x] Phase 9 — Docs & Polish — DONE (2026-08-09)
 - [x] Phase 10 — Integration Bug Fixes & Security/Validation Enhancements — DONE (2026-08-10)
 
-### Frontend (IN PROGRESS)
+### Frontend (COMPLETE)
 - [x] Backend Verification — DONE (2026-08-11)
-- [ ] Phase 0 — Scaffolding — IN PROGRESS
-- [ ] Phase 1 — Auth Foundation
-- [ ] Phase 2 — API Client & Shared UI
-- [ ] Phase 3 — Admin Module
-- [ ] Phase 4 — Teacher Module
-- [ ] Phase 5 — Student Module
-- [ ] Phase 6 — Landing Page
-- [ ] Phase 7 — Polish & Error States
-- [ ] Phase 8 — Testing
-- [ ] Phase 9 — Docs & Polish
+- [x] Phase 0 — Scaffolding — DONE (2026-08-11)
+- [x] Phase 1 — Auth Foundation — DONE (2026-08-11)
+- [x] Phase 2 — API Client & Shared UI — DONE (2026-08-11)
+- [x] Phase 3 — Admin Module — DONE (2026-08-11)
+- [x] Phase 4 — Teacher Module — DONE (2026-08-11)
+- [x] Phase 5 — Student Module — DONE (2026-08-11)
+- [x] Phase 6 — Landing Page — DONE (2026-08-11)
+- [x] Phase 7 — Polish & Error States — DONE (2026-08-11)
+- [x] Phase 8 — Testing — DONE (2026-08-11)
+- [x] Phase 9 — Docs & Polish — DONE (2026-08-11)
 
 ---
 
@@ -86,11 +86,22 @@ Cross-checked all backend DTOs and controllers against FE_IMPLEMENTATION_PLAN.md
 - FE plan assumed no `Name` in auth response; actual `AuthResponseDto` includes `name`. Resolution: use name from login response, store in readable cookie or context.
 - FE plan said `SubmissionDto` returns relative download URL — correct, but the field is still called `filePath` in the DTO.
 
-## Known Issues / TODO
-- Name from auth response needs to be passed to client — plan to store in a non-httpOnly cookie alongside auth_token
-- `POST /api/submissions` submits via `multipart/form-data` with `Content` as a form field and `File` as optional IFormFile — TanStack Query mutation must send FormData not JSON
+## Resolutions Applied
+
+| Issue | Resolution |
+|---|---|
+| Name from auth response not available in JWT | ✅ On login, `name` from `AuthResponseDto` is stored in a separate non-httpOnly cookie (`user_info` as JSON `{name,email,role,userId,classId}`) alongside the httpOnly `auth_token`. Server layouts read `auth_token` for API calls; `user_info` is readable by JS so `CurrentUserProvider` can display the full name in the navbar. |
+| `POST /api/submissions` must send multipart/form-data | ✅ The TanStack Query mutation in `useSubmissions.ts` builds a `FormData` object with `assignmentId` and `content` as form fields, and optionally appends the `file` as a Blob. No `Content-Type` header is set (browser auto-sets `multipart/form-data; boundary=...`). |
+
+## Next.js 16 Breaking Changes (discovered from AGENTS.md)
+
+| Change | Impact |
+|---|---|
+| `middleware.ts` deprecated → renamed to **`proxy.ts`** | Use `proxy.ts` at project root; export named `proxy` function (not `middleware` or default) |
+| Proxy runtime is **Node.js** (not Edge) | `jose` JWT decode works fine; no edge-runtime restriction |
+| `cookies()` is now **async** | All server code must `await cookies()` |
 
 ## How to Verify Current State
 1. Run `docker compose up -d --build` from `/home/mahmudul-rabbi/OnnorokomProjokti/backend`.
 2. Backend API at http://localhost:8080, Swagger at http://localhost:8080/swagger
-3. Frontend: `npm run dev` from `/home/mahmudul-rabbi/OnnorokomProjokti/frontend` (not yet scaffolded)
+3. Frontend: `cd frontend && npm run dev` → http://localhost:3000
