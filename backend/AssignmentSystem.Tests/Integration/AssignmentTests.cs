@@ -84,7 +84,7 @@ public sealed class AssignmentTests
         unassignedTeacher.StatusCode.Should().Be(HttpStatusCode.Forbidden);
 
         using var adminCreate = await _fx.Client.SendAsync(ApiIntegrationFixture.JsonRequest(HttpMethod.Post, "api/assignments",
-            new { title = $"{_fx.Prefix}-Admin", description = "admin", subjectId = _fx.Seed.MathSubjectId, classId = _fx.Seed.Grade10ClassId, deadline = DateTimeOffset.UtcNow.AddDays(1), maxMarks = 10 }, _fx.AdminToken));
+            new { title = $"{_fx.Prefix}-Admin", description = "admin", teacherId = _fx.Seed.Teacher1Id, subjectId = _fx.Seed.MathSubjectId, classId = _fx.Seed.Grade10ClassId, deadline = DateTimeOffset.UtcNow.AddDays(1), maxMarks = 10 }, _fx.AdminToken));
         adminCreate.StatusCode.Should().Be(HttpStatusCode.Created);
     }
 }

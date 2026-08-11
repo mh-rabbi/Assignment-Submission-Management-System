@@ -6,6 +6,10 @@ public class CreateAssignmentDto
     public string Description { get; set; } = string.Empty;
     public Guid SubjectId { get; set; }
     public Guid ClassId { get; set; }
+
+    /// <summary>Target teacher ID for assignment creation. Required when caller is Admin; ignored when caller is Teacher.</summary>
+    public Guid? TeacherId { get; set; }
+
     public DateTimeOffset Deadline { get; set; }
     public int MaxMarks { get; set; }
     public bool AllowLateSubmission { get; set; } = false;

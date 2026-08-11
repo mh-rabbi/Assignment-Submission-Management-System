@@ -105,7 +105,7 @@ public class SubmissionService : ISubmissionService
 
         // Handle optional file upload
         string? newFilePath = null;
-        if (file != null && file.Length > 0)
+        if (file != null)
         {
             newFilePath = await _fileStorage.SaveAsync(file, dto.AssignmentId, studentId);
         }
@@ -252,7 +252,7 @@ public class SubmissionService : ISubmissionService
         {
             Id = h.Id,
             Content = h.Content,
-            FilePath = h.FilePath,
+            FilePath = string.IsNullOrEmpty(h.FilePath) ? null : $"/api/submissions/{submissionId}/file",
             EditedAt = h.EditedAt
         });
     }
@@ -284,7 +284,7 @@ public class SubmissionService : ISubmissionService
         StudentId = s.StudentId,
         StudentName = s.Student?.Name ?? string.Empty,
         Content = s.Content,
-        FilePath = s.FilePath,
+        FilePath = string.IsNullOrEmpty(s.FilePath) ? null : $"/api/submissions/{s.Id}/file",
         SubmittedAt = s.SubmittedAt,
         IsLate = s.IsLate,
         Status = s.Status.ToString(),

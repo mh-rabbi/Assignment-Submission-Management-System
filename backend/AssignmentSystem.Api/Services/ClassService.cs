@@ -1,3 +1,4 @@
+using AssignmentSystem.Api.Common.Exceptions;
 using AssignmentSystem.Api.Data;
 using AssignmentSystem.Api.Data.Entities;
 using AssignmentSystem.Api.DTOs.Classes;
@@ -18,6 +19,7 @@ public class ClassService : IClassService
     public async Task<IEnumerable<ClassDto>> GetAllAsync()
     {
         var classes = await _db.Classes
+            .Where(c => c.IsActive)
             .AsNoTracking()
             .ToListAsync();
 
@@ -27,6 +29,7 @@ public class ClassService : IClassService
     public async Task<ClassDto> GetByIdAsync(Guid id)
     {
         var entity = await _db.Classes
+            .Where(c => c.IsActive)
             .AsNoTracking()
             .FirstOrDefaultAsync(c => c.Id == id);
 
@@ -38,6 +41,11 @@ public class ClassService : IClassService
 
     public async Task<ClassDto> CreateAsync(CreateClassDto dto)
     {
+        var nameLower = dto.Name.Trim().ToLower();
+        var exists = await _db.Classes.AnyAsync(c => c.IsActive && c.Name.ToLower() == nameLower);
+        if (exists)
+            throw new ConflictException($"A class with the name '{dto.Name}' already exists.");
+
         var now = DateTimeOffset.UtcNow;
         var entity = new ClassEntity
         {
@@ -48,30 +56,51 @@ public class ClassService : IClassService
             UpdatedAt = now
         };
 
-        _db.Classes.Add(entity);
-        await _db.SaveChangesAsync();
+        try
+        {
+            _db.Classes.Add(entity);
+            await _db.SaveChangesAsync();
+        }
+        catch (DbUpdateException ex)
+        {
+            throw new ConflictException($"A class with the name '{dto.Name}' already exists.", ex);
+        }
 
         return MapToDto(entity);
     }
 
     public async Task<ClassDto> UpdateAsync(Guid id, UpdateClassDto dto)
     {
-        var entity = await _db.Classes.FindAsync(id);
+        var entity = await _db.Classes.FirstOrDefaultAsync(c => c.Id == id && c.IsActive);
         if (entity == null)
             throw new KeyNotFoundException($"Class with ID '{id}' was not found.");
 
         if (!string.IsNullOrEmpty(dto.Name))
+        {
+            var nameLower = dto.Name.Trim().ToLower();
+            var duplicateExists = await _db.Classes.AnyAsync(c => c.Id != id && c.IsActive && c.Name.ToLower() == nameLower);
+            if (duplicateExists)
+                throw new ConflictException($"A class with the name '{dto.Name}' already exists.");
+
             entity.Name = dto.Name;
+        }
 
         entity.UpdatedAt = DateTimeOffset.UtcNow;
-        await _db.SaveChangesAsync();
+        try
+        {
+            await _db.SaveChangesAsync();
+        }
+        catch (DbUpdateException ex)
+        {
+            throw new ConflictException($"A class with the name '{dto.Name}' already exists.", ex);
+        }
 
         return MapToDto(entity);
     }
 
     public async Task DeleteAsync(Guid id)
     {
-        var entity = await _db.Classes.FindAsync(id);
+        var entity = await _db.Classes.FirstOrDefaultAsync(c => c.Id == id && c.IsActive);
         if (entity == null)
             throw new KeyNotFoundException($"Class with ID '{id}' was not found.");
 

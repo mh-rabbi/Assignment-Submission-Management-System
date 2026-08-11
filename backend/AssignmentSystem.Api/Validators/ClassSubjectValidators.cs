@@ -19,3 +19,25 @@ public class CreateSubjectDtoValidator : AbstractValidator<CreateSubjectDto>
         RuleFor(x => x.Name).NotEmpty().MaximumLength(100);
     }
 }
+
+public class UpdateClassDtoValidator : AbstractValidator<UpdateClassDto>
+{
+    public UpdateClassDtoValidator()
+    {
+        RuleFor(x => x.Name)
+            .NotEmpty()
+            .When(x => x.Name != null)
+            .MaximumLength(100);
+    }
+}
+
+public class UpdateSubjectDtoValidator : AbstractValidator<UpdateSubjectDto>
+{
+    public UpdateSubjectDtoValidator()
+    {
+        RuleFor(x => x.Name)
+            .NotEmpty()
+            .When(x => x.Name != null)
+            .MaximumLength(100);
+    }
+}

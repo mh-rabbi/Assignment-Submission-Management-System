@@ -1,4 +1,5 @@
 using AssignmentSystem.Api.Common.Enums;
+using AssignmentSystem.Api.Common.Exceptions;
 using AssignmentSystem.Api.Common.Helpers;
 using AssignmentSystem.Api.Data;
 using AssignmentSystem.Api.Data.Entities;
@@ -25,7 +26,7 @@ public class AuthService : IAuthService
             .FirstOrDefaultAsync(u => u.Email == dto.Email && u.IsActive);
 
         if (user is null || !BCrypt.Net.BCrypt.Verify(dto.Password, user.PasswordHash))
-            throw new UnauthorizedAccessException("Invalid email or password.");
+            throw new InvalidCredentialsException("Invalid email or password.");
 
         var (token, expiresAt) = JwtHelper.GenerateToken(user, _config);
         return MapToResponse(user, token, expiresAt);
@@ -43,8 +44,15 @@ public class AuthService : IAuthService
         if (role != Role.Student && dto.ClassId.HasValue)
             throw new ArgumentException("ClassId can only be set for Students.");
 
-        if (role == Role.Student && !dto.ClassId.HasValue)
-            throw new ArgumentException("ClassId is required for Students.");
+        if (role == Role.Student)
+        {
+            if (!dto.ClassId.HasValue)
+                throw new ArgumentException("ClassId is required for Students.");
+
+            var classExists = await _db.Classes.AnyAsync(c => c.Id == dto.ClassId.Value && c.IsActive);
+            if (!classExists)
+                throw new ArgumentException($"Class with ID '{dto.ClassId.Value}' was not found or is inactive.");
+        }
 
         var now = DateTimeOffset.UtcNow;
         var user = new User

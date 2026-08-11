@@ -1,3 +1,4 @@
+using AssignmentSystem.Api.Common.Exceptions;
 using FluentValidation;
 using System.Net;
 using System.Text.Json;
@@ -38,6 +39,11 @@ public class ExceptionMiddleware
 
         switch (exception)
         {
+            case InvalidCredentialsException credEx:
+                statusCode = HttpStatusCode.Unauthorized;
+                message = credEx.Message;
+                break;
+
             case KeyNotFoundException keyEx:
                 statusCode = HttpStatusCode.NotFound;
                 message = keyEx.Message;
@@ -46,6 +52,11 @@ public class ExceptionMiddleware
             case UnauthorizedAccessException authEx:
                 statusCode = HttpStatusCode.Forbidden;
                 message = authEx.Message;
+                break;
+
+            case ConflictException conflictEx:
+                statusCode = HttpStatusCode.Conflict;
+                message = conflictEx.Message;
                 break;
 
             case ValidationException valEx:

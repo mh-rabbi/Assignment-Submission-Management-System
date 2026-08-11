@@ -40,7 +40,7 @@ public sealed class SubmissionTests
         created.StatusCode.Should().Be(HttpStatusCode.OK);
         var createdJson = await _fx.ReadJsonNodeAsync(created);
         var submissionId = Guid.Parse(createdJson["id"]!.GetValue<string>());
-        createdJson["filePath"]!.GetValue<string>().Should().Contain(_fx.Prefix);
+        createdJson["filePath"]!.GetValue<string>().Should().Be($"/api/submissions/{submissionId}/file");
 
         (await _fx.CountRowsAsync(@"select count(*) from ""Submissions"" where ""Id"" = @id and ""Content"" = @content",
             new NpgsqlParameter("id", submissionId), new NpgsqlParameter("content", $"{_fx.Prefix} first submission"))).Should().Be(1);

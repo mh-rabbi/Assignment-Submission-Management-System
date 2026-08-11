@@ -11,5 +11,6 @@ public class SubjectConfiguration : IEntityTypeConfiguration<Subject>
         builder.HasKey(s => s.Id);
         builder.Property(s => s.Name).HasMaxLength(100).IsRequired();
         builder.Property(s => s.IsActive).HasDefaultValue(true);
+        builder.HasIndex(s => s.Name).IsUnique().HasFilter("\"IsActive\" = true");
     }
 }

@@ -12,5 +12,6 @@ public class ClassEntityConfiguration : IEntityTypeConfiguration<ClassEntity>
         builder.HasKey(c => c.Id);
         builder.Property(c => c.Name).HasMaxLength(100).IsRequired();
         builder.Property(c => c.IsActive).HasDefaultValue(true);
+        builder.HasIndex(c => c.Name).IsUnique().HasFilter("\"IsActive\" = true");
     }
 }

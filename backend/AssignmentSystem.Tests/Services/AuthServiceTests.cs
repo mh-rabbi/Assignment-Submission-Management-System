@@ -1,4 +1,5 @@
 using AssignmentSystem.Api.Common.Enums;
+using AssignmentSystem.Api.Common.Exceptions;
 using AssignmentSystem.Api.Data;
 using AssignmentSystem.Api.Data.Entities;
 using AssignmentSystem.Api.DTOs.Auth;
@@ -92,7 +93,7 @@ public class AuthServiceTests
 
         // Act & Assert
         var act = () => service.LoginAsync(dto);
-        await act.Should().ThrowAsync<UnauthorizedAccessException>();
+        await act.Should().ThrowAsync<InvalidCredentialsException>();
     }
 
     [Fact]
