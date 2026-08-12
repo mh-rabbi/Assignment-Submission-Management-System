@@ -17,6 +17,8 @@ export default function AuthPage() {
 
   const [tab, setTab] = useState<'signin' | 'register'>('signin');
   const [classes, setClasses] = useState<ClassDto[]>([]);
+  const [classesLoading, setClassesLoading] = useState(true);
+  const [classesError, setClassesError] = useState<string | null>(null);
 
   // Sign In state
   const [loginEmail, setLoginEmail] = useState('');
@@ -44,10 +46,16 @@ export default function AuthPage() {
   // Fetch classes for Student registration dropdown
   useEffect(() => {
     classesApi
-      .list()
-      .then(setClasses)
+      .listForRegistration()
+      .then((data) => {
+        setClasses(data);
+      })
       .catch(() => {
-        // Silently ignore if unauthenticated API call fails for classes list
+        setClasses([]);
+        setClassesError('Classes could not be loaded. Please try again later.');
+      })
+      .finally(() => {
+        setClassesLoading(false);
       });
   }, []);
 
@@ -411,23 +419,30 @@ export default function AuthPage() {
                   className="field-input"
                   value={regClassId}
                   onChange={(e) => setRegClassId(e.target.value)}
-                  style={{ cursor: 'pointer' }}
+                  disabled={classesLoading || !!classesError}
+                  style={{ cursor: classesLoading || classesError ? 'not-allowed' : 'pointer' }}
                 >
-                  <option value="">Select a class...</option>
+                  <option value="">
+                    {classesLoading ? 'Loading classes...' : 'Select a class...'}
+                  </option>
                   {classes.map((c) => (
                     <option key={c.id} value={c.id}>
                       {c.name}
                     </option>
                   ))}
                 </select>
-                <p className="field-hint">Only students belong to a class.</p>
+                {classesError ? (
+                  <p className="field-error">{classesError}</p>
+                ) : (
+                  <p className="field-hint">Only students belong to a class.</p>
+                )}
               </div>
             )}
 
             <Button
               type="submit"
               variant="primary"
-              disabled={regLoading}
+              disabled={regLoading || (regRole === 'Student' && (classesLoading || !!classesError || !regClassId))}
               style={{ width: '100%', marginTop: '6px' }}
             >
               {regLoading ? 'Creating account...' : 'Create account'}

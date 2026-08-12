@@ -20,6 +20,18 @@ export interface DataTableProps<T> {
   defaultPageSize?: number;
 }
 
+function getSearchableText(value: React.ReactNode): string {
+  if (value == null || typeof value === 'boolean') return '';
+  if (typeof value === 'string' || typeof value === 'number') return String(value);
+  if (Array.isArray(value)) return value.map(getSearchableText).join(' ');
+
+  if (React.isValidElement<{ children?: React.ReactNode }>(value)) {
+    return getSearchableText(value.props.children);
+  }
+
+  return '';
+}
+
 export function DataTable<T>({
   columns,
   data,
@@ -43,7 +55,7 @@ export function DataTable<T>({
       columns.some((col) => {
         const val = col.sortValue ? col.sortValue(row) : col.accessor(row);
         if (val == null) return false;
-        return String(val).toLowerCase().includes(term);
+        return getSearchableText(val).toLowerCase().includes(term);
       })
     );
   }, [data, columns, searchTerm]);

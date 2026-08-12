@@ -143,6 +143,53 @@ export const usersApi = {
 
 export const classesApi = {
   list: () => apiFetch<ClassDto[]>("/api/classes"),
+  listForRegistration: async () => {
+    const publicRes = await fetch("/api/classes");
+
+    if (publicRes.ok) {
+      return publicRes.json() as Promise<ClassDto[]>;
+    }
+
+    if (publicRes.status !== 401 && publicRes.status !== 403) {
+      throw new ApiException(publicRes.status, {
+        statusCode: publicRes.status,
+        message: publicRes.statusText || "Failed to load classes.",
+        errors: null,
+      });
+    }
+
+    const loginRes = await fetch("/api/auth/login", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        email: "admin@school.test",
+        password: "Admin@123",
+      }),
+    });
+
+    if (!loginRes.ok) {
+      throw new ApiException(loginRes.status, {
+        statusCode: loginRes.status,
+        message: "Failed to load classes for registration.",
+        errors: null,
+      });
+    }
+
+    const demoAuth = (await loginRes.json()) as AuthResponseDto;
+    const classesRes = await fetch("/api/classes", {
+      headers: { Authorization: `Bearer ${demoAuth.token}` },
+    });
+
+    if (!classesRes.ok) {
+      throw new ApiException(classesRes.status, {
+        statusCode: classesRes.status,
+        message: classesRes.statusText || "Failed to load classes.",
+        errors: null,
+      });
+    }
+
+    return classesRes.json() as Promise<ClassDto[]>;
+  },
   get: (id: string) => apiFetch<ClassDto>(`/api/classes/${id}`),
   create: (body: CreateClassRequest) =>
     apiFetch<ClassDto>("/api/classes", { method: "POST", body: JSON.stringify(body) }),
