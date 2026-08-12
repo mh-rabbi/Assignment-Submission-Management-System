@@ -1,0 +1,701 @@
+/* ================================================================
+   Roll Call — Global CSS
+   Design System v2 tokens: §1 (colors), §2 (typography), §3 (glass),
+   §4 (theme), §5 (layout), §9 (motion), §13 (app-mode adjustments)
+   ================================================================ */
+
+/* ── Google Fonts ── */
+@import url('https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,500;9..144,560;9..144,600&family=Inter:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap');
+
+/* ── Light Mode Palette (60/30/10) — §1 ── */
+:root[data-theme="light"],
+:root:not([data-theme]) {
+  /* Dominant 60% */
+  --bg-page: #F4F1E6;           /* parchment */
+  --bg-page-alt: #EDE8D8;       /* section band behind glass */
+
+  /* Secondary 30% */
+  --ink: #14261D;               /* ink forest */
+  --ink-rgb: 20, 38, 29;
+
+  /* Glass surfaces */
+  --glass-surface: rgba(255, 255, 255, 0.55);
+  --glass-surface-muted: rgba(244, 241, 230, 0.40);
+
+  /* Accent 10% */
+  --moss: #3F7D57;
+  --moss-hover: #2C5C3F;        /* = moss-deep in spec */
+
+  /* Functional flag — data only, never decorative */
+  --stamp: #B4552F;             /* terracotta — Late badges only */
+
+  /* Derived / utility */
+  --on-moss: #F4F1E6;           /* text on moss fill */
+  --blob-a: rgba(63, 125, 87, 0.16);
+  --blob-b: rgba(20, 38, 29, 0.08);
+  --sheen: rgba(255, 255, 255, 0.18);
+
+  /* Typography */
+  --font-display: 'Fraunces', Georgia, serif;
+  --font-body: 'Inter', system-ui, sans-serif;
+  --font-mono: 'IBM Plex Mono', 'Courier New', monospace;
+
+  /* Glass shadow */
+  --glass-shadow: 0 1px 0 rgba(255, 255, 255, 0.18) inset, 0 20px 40px -12px rgba(20, 38, 29, 0.18);
+
+  /* App-mode derived */
+  --text-secondary: rgba(20, 38, 29, 0.70);
+  --text-tertiary: rgba(20, 38, 29, 0.50);
+  --border-subtle: rgba(20, 38, 29, 0.08);
+  --border-medium: rgba(20, 38, 29, 0.12);
+}
+
+/* ── Dark Mode Palette — §1 ── */
+:root[data-theme="dark"] {
+  /* Dominant 60% */
+  --bg-page: #0E1913;           /* chalkboard */
+  --bg-page-alt: #132019;       /* section band */
+
+  /* Secondary 30% */
+  --ink: #F4F1E6;               /* chalk */
+  --ink-rgb: 244, 241, 230;
+
+  /* Glass surfaces */
+  --glass-surface: rgba(20, 38, 29, 0.55);
+  --glass-surface-muted: rgba(14, 25, 19, 0.45);
+
+  /* Accent 10% */
+  --moss: #5FCB8A;
+  --moss-hover: #7FDDA3;        /* = moss-bright in spec */
+
+  /* Functional flag */
+  --stamp: #E28259;
+
+  /* Derived */
+  --on-moss: #0E1913;
+  --blob-a: rgba(95, 203, 138, 0.14);
+  --blob-b: rgba(244, 241, 230, 0.05);
+  --sheen: transparent;
+
+  /* Typography (same families) */
+  --font-display: 'Fraunces', Georgia, serif;
+  --font-body: 'Inter', system-ui, sans-serif;
+  --font-mono: 'IBM Plex Mono', 'Courier New', monospace;
+
+  /* Glass shadow */
+  --glass-shadow: 0 20px 40px -12px rgba(0, 0, 0, 0.40);
+
+  /* App-mode derived */
+  --text-secondary: rgba(244, 241, 230, 0.70);
+  --text-tertiary: rgba(244, 241, 230, 0.50);
+  --border-subtle: rgba(244, 241, 230, 0.08);
+  --border-medium: rgba(244, 241, 230, 0.12);
+}
+
+/* ── Semantic Status Colors (from §1 mapping) ── */
+:root {
+  --status-draft-border: rgba(var(--ink-rgb), 0.40);
+  --status-draft-text: rgba(var(--ink-rgb), 0.50);
+  --status-published-bg: var(--moss);
+  --status-published-text: var(--on-moss);
+  --status-closed-bg: rgba(var(--ink-rgb), 0.85);
+  --status-closed-text: var(--bg-page);
+  --status-graded-bg: var(--moss);
+  --status-graded-text: var(--on-moss);
+  --status-late-bg: var(--stamp);
+  --status-late-text: var(--bg-page);
+}
+
+/* ── CSS Reset + Base ── */
+*, *::before, *::after {
+  box-sizing: border-box;
+  -webkit-tap-highlight-color: transparent;
+}
+
+html {
+  scroll-behavior: smooth;
+  scroll-padding-top: 96px;
+  -webkit-text-size-adjust: 100%;
+}
+
+body {
+  margin: 0;
+  background: var(--bg-page);
+  color: var(--ink);
+  font-family: var(--font-body);
+  font-size: 16px;
+  line-height: 1.65;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  overflow-x: hidden;
+  /* Theme transition — on body only, not every element */
+  transition:
+    background-color 240ms ease-out,
+    color 240ms ease-out;
+}
+
+/* Heading defaults — Fraunces, but never below 20px (§2 rule) */
+h1, h2, h3 {
+  font-family: var(--font-display);
+  font-weight: 560;
+  letter-spacing: -0.01em;
+  margin: 0;
+  line-height: 1.1;
+}
+h4, h5, h6 {
+  font-family: var(--font-body);
+  font-weight: 600;
+  margin: 0;
+}
+
+p { margin: 0; }
+a { color: var(--moss); text-decoration: none; }
+a:hover { color: var(--moss-hover); }
+button { cursor: pointer; border: none; background: none; padding: 0; font: inherit; }
+img, video { max-width: 100%; height: auto; }
+input, textarea, select {
+  font: inherit;
+  color: inherit;
+  background: transparent;
+  border: none;
+  outline: none;
+}
+ul, ol { margin: 0; padding: 0; list-style: none; }
+
+/* Focus ring — §10 */
+:focus-visible {
+  outline: 2px solid var(--moss);
+  outline-offset: 2px;
+  border-radius: 4px;
+}
+
+/* ── Paper texture (ledger grid) — §3 ── */
+.paper {
+  position: fixed;
+  inset: 0;
+  z-index: 0;
+  pointer-events: none;
+  background-image: radial-gradient(rgba(var(--ink-rgb), 0.06) 1px, transparent 1px);
+  background-size: 24px 24px;
+  opacity: 0.4;
+}
+
+/* ── Blob drift elements — §3 ── */
+.blob {
+  position: fixed;
+  border-radius: 50%;
+  filter: blur(90px);
+  z-index: 0;
+  pointer-events: none;
+  will-change: transform;
+}
+.blob-a { background: var(--blob-a); }
+.blob-b { background: var(--blob-b); }
+
+@keyframes drift1 {
+  0%, 100% { transform: translate(0, 0) scale(1); }
+  50% { transform: translate(40px, 30px) scale(1.05); }
+}
+@keyframes drift2 {
+  0%, 100% { transform: translate(0, 0) scale(1); }
+  50% { transform: translate(-30px, 40px) scale(1.05); }
+}
+
+/* ── Glassmorphism Utilities — §3 ── */
+
+/* Full glass panel */
+.glass {
+  background-color: var(--bg-page-alt); /* solid fallback if backdrop-filter unsupported — §10 */
+  background: var(--glass-surface);
+  backdrop-filter: blur(20px) saturate(150%);
+  -webkit-backdrop-filter: blur(20px) saturate(150%);
+  border: 1px solid rgba(var(--ink-rgb), 0.10);
+  border-radius: 20px;
+  box-shadow: var(--glass-shadow);
+  transition:
+    background-color 240ms ease-out,
+    border-color 240ms ease-out;
+}
+
+/* Muted nested glass — used inside a .glass panel */
+.glass-muted {
+  background-color: var(--bg-page-alt); /* solid fallback */
+  background: var(--glass-surface-muted);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  border: 1px solid rgba(var(--ink-rgb), 0.08);
+  border-radius: 14px;
+  transition:
+    background-color 240ms ease-out,
+    border-color 240ms ease-out;
+}
+
+/* App-mode glass — blur reduced to 14px for readability with data behind it — §13 */
+.glass-app {
+  background-color: var(--bg-page-alt);
+  background: var(--glass-surface);
+  backdrop-filter: blur(14px) saturate(140%);
+  -webkit-backdrop-filter: blur(14px) saturate(140%);
+  border: 1px solid rgba(var(--ink-rgb), 0.10);
+  border-radius: 14px; /* 14px in app-mode, not 20px — §13 */
+  transition:
+    background-color 240ms ease-out,
+    border-color 240ms ease-out;
+}
+
+/* ── Layout utilities — §5 ── */
+.wrap {
+  max-width: 1180px;
+  margin: 0 auto;
+  padding: 0 clamp(20px, 4vw, 24px);
+  position: relative;
+  z-index: 2;
+}
+
+/* ── Typography utilities — §2 ── */
+.eyebrow {
+  font-family: var(--font-mono);
+  font-size: 12px;
+  font-weight: 500;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--moss);
+  margin: 0 0 14px;
+}
+
+.mono {
+  font-family: var(--font-mono);
+  font-size: 13px;
+  font-weight: 500;
+  letter-spacing: 0.02em;
+}
+
+/* ── Button Primitives — §8 ── */
+.btn {
+  font-family: var(--font-body);
+  font-weight: 500;
+  font-size: 15px;
+  border-radius: 999px;
+  padding: 13px 26px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  cursor: pointer;
+  transition:
+    transform 180ms cubic-bezier(0.34, 1.56, 0.64, 1),
+    background-color 180ms ease,
+    box-shadow 180ms ease,
+    border-color 180ms ease;
+  white-space: nowrap;
+}
+
+.btn:active {
+  transform: scale(0.96) !important;
+}
+
+.btn:focus-visible {
+  outline: 2px solid var(--moss);
+  outline-offset: 2px;
+}
+
+.btn-primary {
+  background: var(--moss);
+  color: var(--on-moss);
+  border: none;
+}
+
+.btn-primary:hover {
+  background: var(--moss-hover);
+  transform: translateY(-1px);
+  box-shadow: 0 8px 20px -8px rgba(var(--ink-rgb), 0.35);
+}
+
+.btn-ghost {
+  background: transparent;
+  color: var(--ink);
+  border: 1px solid rgba(var(--ink-rgb), 0.22);
+}
+
+.btn-ghost:hover {
+  background: rgba(var(--ink-rgb), 0.05);
+  transform: translateY(-1px);
+}
+
+.btn-lg {
+  padding: 17px 34px;
+  font-size: 16.5px;
+}
+
+.btn-sm {
+  padding: 8px 16px;
+  font-size: 13px;
+}
+
+/* Destructive button */
+.btn-danger {
+  background: rgba(180, 85, 47, 0.12);
+  color: var(--stamp);
+  border: 1px solid rgba(180, 85, 47, 0.25);
+}
+
+.btn-danger:hover {
+  background: rgba(180, 85, 47, 0.20);
+  transform: translateY(-1px);
+}
+
+/* ── Status Pills — §1 semantic mapping ── */
+.pill {
+  display: inline-flex;
+  align-items: center;
+  padding: 4px 12px;
+  border-radius: 999px;
+  font-family: var(--font-mono);
+  font-size: 11px;
+  font-weight: 500;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  white-space: nowrap;
+  flex-shrink: 0;
+}
+
+/* Draft — neutral ink, dashed, 50% opacity */
+.pill-draft {
+  border: 1px dashed rgba(var(--ink-rgb), 0.40);
+  color: rgba(var(--ink-rgb), 0.55);
+  background: transparent;
+}
+
+/* Published — moss solid */
+.pill-published {
+  background: var(--moss);
+  color: var(--on-moss);
+  border: none;
+}
+
+/* Closed — ink solid */
+.pill-closed {
+  background: rgba(var(--ink-rgb), 0.85);
+  color: var(--bg-page);
+  border: none;
+}
+
+/* Graded — moss stamp */
+.pill-graded {
+  background: var(--moss);
+  color: var(--on-moss);
+  border: none;
+}
+
+/* Late — stamp terracotta — data color ONLY */
+.pill-late {
+  background: var(--stamp);
+  color: var(--bg-page);
+  border: none;
+}
+
+/* Active / Inactive user status */
+.pill-active {
+  background: rgba(63, 125, 87, 0.15);
+  color: var(--moss);
+  border: 1px solid rgba(63, 125, 87, 0.30);
+}
+
+.pill-inactive {
+  background: rgba(var(--ink-rgb), 0.06);
+  color: var(--text-secondary);
+  border: 1px solid rgba(var(--ink-rgb), 0.15);
+}
+
+/* Submitted */
+.pill-submitted {
+  background: rgba(var(--ink-rgb), 0.08);
+  color: var(--ink);
+  border: 1px solid rgba(var(--ink-rgb), 0.18);
+}
+
+/* ── Badge / Role Stamp — §8 ── */
+.role-stamp {
+  width: 44px;
+  height: 44px;
+  border-radius: 50%;
+  border: 1.5px dashed var(--moss);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transform: rotate(-2deg);
+  font-family: var(--font-mono);
+  font-weight: 500;
+  font-size: 12px;
+  color: var(--moss);
+  flex-shrink: 0;
+  transition: border-color 240ms ease-out, color 240ms ease-out;
+}
+
+.role-stamp-lg {
+  width: 52px;
+  height: 52px;
+  font-size: 14px;
+  transform: rotate(-4deg);
+}
+
+/* ── Scroll Reveal — §9 ── */
+.reveal {
+  opacity: 0;
+  transform: translateY(18px);
+  transition:
+    opacity 700ms cubic-bezier(0.16, 1, 0.3, 1),
+    transform 700ms cubic-bezier(0.16, 1, 0.3, 1);
+  will-change: opacity, transform;
+}
+
+.reveal.in {
+  opacity: 1;
+  transform: none;
+}
+
+/* Hero entrance — §9 */
+@keyframes heroIn {
+  to { opacity: 1; transform: none; }
+}
+
+/* ── Form Elements — §16 ── */
+.field-group {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.field-label {
+  font-family: var(--font-body);
+  font-size: 13px;
+  font-weight: 500;
+  color: var(--text-secondary);
+}
+
+.field-input {
+  background-color: var(--bg-page-alt); /* solid fallback */
+  background: var(--glass-surface-muted);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  border: 1px solid rgba(var(--ink-rgb), 0.12);
+  border-radius: 14px;
+  padding: 0 16px;
+  height: 44px;
+  font-size: 15px;
+  color: var(--ink);
+  width: 100%;
+  transition:
+    border-color 180ms ease,
+    box-shadow 180ms ease,
+    background-color 240ms ease-out;
+}
+
+.field-input:focus {
+  outline: none;
+  border-color: var(--moss);
+  box-shadow: 0 0 0 2px rgba(63, 125, 87, 0.18);
+}
+
+.field-input::placeholder {
+  color: var(--text-tertiary);
+}
+
+.field-textarea {
+  height: auto;
+  min-height: 100px;
+  padding: 12px 16px;
+  resize: vertical;
+  border-radius: 14px;
+}
+
+.field-error {
+  font-size: 13px;
+  color: var(--stamp);
+  margin-top: 4px;
+}
+
+.field-hint {
+  font-size: 13px;
+  color: var(--text-tertiary);
+  margin-top: 4px;
+}
+
+/* ── Data Table — §16 ── */
+.data-table-wrap {
+  overflow-x: auto;
+  border-radius: 14px;
+}
+
+.data-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 14px;
+}
+
+.data-table th {
+  font-family: var(--font-body);
+  font-size: 12px;
+  font-weight: 500;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  color: var(--text-secondary);
+  text-align: left;
+  padding: 12px 16px;
+  border-bottom: 1px solid rgba(var(--ink-rgb), 0.10);
+  white-space: nowrap;
+  cursor: pointer;
+  user-select: none;
+}
+
+.data-table th:hover {
+  color: var(--ink);
+}
+
+.data-table td {
+  padding: 0 16px;
+  height: 44px;
+  border-bottom: 1px solid rgba(var(--ink-rgb), 0.07);
+  vertical-align: middle;
+  color: var(--ink);
+}
+
+.data-table tr:last-child td {
+  border-bottom: none;
+}
+
+.data-table tbody tr {
+  transition: background-color 150ms ease;
+}
+
+.data-table tbody tr:hover {
+  background: var(--glass-surface-muted);
+}
+
+/* ── Skeleton Loading — §16 (no shimmer per spec) ── */
+.skeleton {
+  background: var(--glass-surface-muted);
+  border-radius: 6px;
+  height: 16px;
+  display: block;
+}
+
+/* ── Toast ── */
+.toast-container {
+  position: fixed;
+  bottom: 24px;
+  right: 24px;
+  z-index: 9999;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  pointer-events: none;
+}
+
+.toast {
+  pointer-events: all;
+  background-color: var(--bg-page-alt);
+  background: var(--glass-surface);
+  backdrop-filter: blur(14px);
+  -webkit-backdrop-filter: blur(14px);
+  border: 1px solid rgba(var(--ink-rgb), 0.12);
+  border-radius: 999px;
+  padding: 12px 20px;
+  font-size: 14px;
+  color: var(--ink);
+  box-shadow: 0 8px 24px -8px rgba(var(--ink-rgb), 0.20);
+  animation: toastIn 300ms cubic-bezier(0.16, 1, 0.3, 1) forwards;
+  max-width: 320px;
+}
+
+.toast-error {
+  border-color: rgba(180, 85, 47, 0.30);
+  background: rgba(180, 85, 47, 0.08);
+}
+
+@keyframes toastIn {
+  from { opacity: 0; transform: translateY(12px) scale(0.95); }
+  to { opacity: 1; transform: none; }
+}
+
+/* ── Modal Backdrop ── */
+.modal-backdrop {
+  position: fixed;
+  inset: 0;
+  z-index: 100;
+  background: rgba(var(--ink-rgb), 0.35); /* flat scrim — NOT blurred, max 2 glass layers — §3 */
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 20px;
+  animation: fadeIn 200ms ease;
+}
+
+.modal-panel {
+  width: 100%;
+  max-width: 560px;
+  max-height: 90vh;
+  overflow-y: auto;
+  padding: 32px;
+  position: relative;
+  animation: slideUp 300ms cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.modal-footer {
+  display: flex;
+  justify-content: flex-end;
+  gap: 12px;
+  margin-top: 28px;
+  padding-top: 20px;
+  border-top: 1px solid rgba(var(--ink-rgb), 0.08);
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+@keyframes slideUp {
+  from { opacity: 0; transform: translateY(24px) scale(0.96); }
+  to { opacity: 1; transform: none; }
+}
+
+/* ── Prefers Reduced Motion — §9, §10 ── */
+@media (prefers-reduced-motion: reduce) {
+  html { scroll-behavior: auto; }
+  *, *::before, *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
+  .blob { animation: none !important; }
+  .reveal {
+    opacity: 1 !important;
+    transform: none !important;
+    transition: none !important;
+  }
+}
+
+/* ── Responsive touch: disable translateY hovers on touch devices — §9 ── */
+@media (hover: none) {
+  .btn-primary:hover,
+  .btn-ghost:hover,
+  .btn-danger:hover {
+    transform: none;
+  }
+}
+
+/* ── App Shell Responsive Rules — §14 ── */
+@media (max-width: 899px) {
+  aside.glass-app {
+    display: none !important;
+  }
+  .mobile-tab-bar {
+    display: flex !important;
+  }
+  .app-main-content {
+    margin-left: 0 !important;
+    padding-bottom: 76px !important;
+  }
+}
+
