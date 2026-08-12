@@ -87,7 +87,7 @@ export function RollCallRail() {
   return (
     <>
       {/* 3px Top Progress Bar (Visible < 1180px per design §6 & §11) */}
-      <div className="topbar" id="topbar">
+      <div className="landing-topbar" id="topbar">
         <div
           className="topbar-fill"
           style={{ width: `${progressPct}%` }}

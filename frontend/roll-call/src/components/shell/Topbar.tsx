@@ -32,24 +32,7 @@ export function Topbar() {
   const initial = (auth?.name || auth?.email || 'U')[0].toUpperCase();
 
   return (
-    <header
-      className="glass-app"
-      style={{
-        height: '64px',
-        position: 'sticky',
-        top: 0,
-        zIndex: 30,
-        display: 'flex',
-        alignItems: 'center',
-        justifyContent: 'space-between',
-        padding: '0 28px',
-        borderRadius: 0,
-        borderBottom: '1px solid rgba(var(--ink-rgb), 0.10)',
-        borderTop: 'none',
-        borderLeft: 'none',
-        borderRight: 'none',
-      }}
-    >
+    <header className="app-header glass-app">
       {/* Page Title (Fraunces Display M, 24px per §13 & §14) */}
       <h1
         style={{

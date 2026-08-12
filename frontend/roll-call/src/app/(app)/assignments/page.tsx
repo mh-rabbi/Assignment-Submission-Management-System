@@ -14,7 +14,6 @@ import {
 } from '@/lib/api';
 import type {
   AssignmentDto,
-  AssignmentStatus,
   TeacherAssignmentDto,
   SubmissionDto,
   ClassDto,
@@ -129,10 +128,19 @@ export default function AssignmentsPage() {
     )
   );
 
-  const availableClassesForSubject = teacherAssignments.filter(
-    (ta) =>
-      (role === 'Admin' && selectedTeacherId ? ta.teacherId === selectedTeacherId : true) &&
-      (selectedSubjectId ? ta.subjectId === selectedSubjectId : true)
+  // Deduplicate by classId — a teacher can be assigned to the same class for
+  // multiple subjects, which would produce duplicate classId entries (and React
+  // duplicate-key warnings). We only need one entry per unique class here.
+  const availableClassesForSubject = Array.from(
+    new Map(
+      teacherAssignments
+        .filter(
+          (ta) =>
+            (role === 'Admin' && selectedTeacherId ? ta.teacherId === selectedTeacherId : true) &&
+            (selectedSubjectId ? ta.subjectId === selectedSubjectId : true)
+        )
+        .map((ta) => [ta.classId, ta])
+    ).values()
   );
 
   const handleCreateSubmit = async () => {
@@ -429,6 +437,7 @@ export default function AssignmentsPage() {
             >
               <option value="">Select class...</option>
               {availableClassesForSubject.map((ta) => (
+                // ta.classId is now guaranteed unique after deduplication above
                 <option key={ta.classId} value={ta.classId}>
                   {ta.className}
                 </option>
