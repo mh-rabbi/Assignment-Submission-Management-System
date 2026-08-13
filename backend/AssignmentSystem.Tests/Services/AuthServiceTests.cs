@@ -1,3 +1,4 @@
+using AssignmentSystem.Api.Common.Helpers;
 using AssignmentSystem.Api.Common.Enums;
 using AssignmentSystem.Api.Common.Exceptions;
 using AssignmentSystem.Api.Data;
@@ -23,16 +24,16 @@ public class AuthServiceTests
 
     private static IConfiguration GetConfiguration()
     {
-        var inMemorySettings = new Dictionary<string, string?>
-        {
-            {"JWT_SECRET", "super_secret_key_which_should_be_at_least_256_bits_long_for_hs256"},
-            {"JWT_ISSUER", "AssignmentSystem"},
-            {"JWT_AUDIENCE", "AssignmentSystemClients"},
-            {"JWT_EXPIRY_MINUTES", "60"}
-        };
+        EnvironmentConfiguration.LoadDotEnv();
 
         return new ConfigurationBuilder()
-            .AddInMemoryCollection(inMemorySettings)
+            .AddInMemoryCollection(new Dictionary<string, string?>
+            {
+                {"JWT_ISSUER", "AssignmentSystem"},
+                {"JWT_AUDIENCE", "AssignmentSystemClients"},
+                {"JWT_EXPIRY_MINUTES", "60"}
+            })
+            .AddEnvironmentVariables()
             .Build();
     }
 

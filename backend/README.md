@@ -20,6 +20,14 @@ A role-based Assignment & Submission Management System Web API for schools/colle
 
 ## One-Command Setup (Docker)
 
+Create your local environment file first:
+
+```bash
+cp .env.example .env
+```
+
+Then edit `.env` and replace every `replace-with-*` value with your local credentials/secrets.
+
 To build, apply migrations, seed demo data, and run the API and PostgreSQL database:
 
 ```bash
@@ -100,6 +108,8 @@ AssignmentSystem/
 ---
 
 ## Running Tests
+
+Tests read the same `.env` file used by local development. Make sure `JWT_SECRET`, `POSTGRES_DB`, `POSTGRES_USER`, and `POSTGRES_PASSWORD` are configured before running them.
 
 Run unit tests via .NET CLI:
 

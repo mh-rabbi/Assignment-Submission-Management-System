@@ -11,8 +11,7 @@ public static class JwtHelper
     public static (string token, DateTime expiresAt) GenerateToken(
         User user, IConfiguration config)
     {
-        var secret = config["JWT_SECRET"]
-            ?? throw new InvalidOperationException("JWT_SECRET not configured.");
+        var secret = EnvironmentConfiguration.GetRequired(config, "JWT_SECRET");
         var issuer = config["JWT_ISSUER"] ?? "AssignmentSystem";
         var audience = config["JWT_AUDIENCE"] ?? "AssignmentSystemClients";
         var expiryMinutes = int.Parse(config["JWT_EXPIRY_MINUTES"] ?? "60");

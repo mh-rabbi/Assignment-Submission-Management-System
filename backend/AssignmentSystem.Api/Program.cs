@@ -1,5 +1,6 @@
 using AssignmentSystem.Api.Data;
 using AssignmentSystem.Api.Data.Seed;
+using AssignmentSystem.Api.Common.Helpers;
 using AssignmentSystem.Api.Middleware;
 using AssignmentSystem.Api.Services;
 using AssignmentSystem.Api.Services.Interfaces;
@@ -11,6 +12,8 @@ using Microsoft.IdentityModel.Tokens;
 using Microsoft.OpenApi.Models;
 using Serilog;
 using System.Text;
+
+EnvironmentConfiguration.LoadDotEnv();
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -25,8 +28,7 @@ Log.Logger = new LoggerConfiguration()
 builder.Host.UseSerilog();
 
 // ─── Database (EF Core + PostgreSQL) ──────────────────────────────────────
-var connectionString = builder.Configuration.GetConnectionString("DefaultConnection")
-    ?? throw new InvalidOperationException("ConnectionStrings:DefaultConnection is not configured.");
+var connectionString = EnvironmentConfiguration.GetPostgresConnectionString(builder.Configuration);
 
 builder.Services.AddDbContext<AppDbContext>(options =>
     options.UseNpgsql(connectionString)
@@ -96,8 +98,7 @@ builder.Services.AddSwaggerGen(options =>
 });
 
 // ─── JWT Authentication ────────────────────────────────────────────────────
-var jwtSecret = builder.Configuration["JWT_SECRET"]
-    ?? throw new InvalidOperationException("JWT_SECRET is not configured.");
+var jwtSecret = EnvironmentConfiguration.GetRequired(builder.Configuration, "JWT_SECRET");
 var jwtIssuer = builder.Configuration["JWT_ISSUER"] ?? "AssignmentSystem";
 var jwtAudience = builder.Configuration["JWT_AUDIENCE"] ?? "AssignmentSystemClients";
 

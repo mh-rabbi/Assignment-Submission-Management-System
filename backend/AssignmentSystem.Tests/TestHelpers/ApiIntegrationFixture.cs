@@ -3,8 +3,10 @@ using System.Net.Http.Json;
 using System.Text;
 using System.Text.Json;
 using System.Text.Json.Nodes;
+using AssignmentSystem.Api.Common.Helpers;
 using AssignmentSystem.Api.DTOs.Auth;
 using FluentAssertions;
+using Microsoft.Extensions.Configuration;
 using Microsoft.IdentityModel.Tokens;
 using Npgsql;
 using System.IdentityModel.Tokens.Jwt;
@@ -19,10 +21,12 @@ public sealed class ApiIntegrationFixture : IAsyncLifetime
 
     public ApiIntegrationFixture()
     {
+        EnvironmentConfiguration.LoadDotEnv();
+
         var baseUrl = Environment.GetEnvironmentVariable("ASSIGNMENT_API_BASE_URL") ?? "http://localhost:8080";
         BaseUrl = new Uri(baseUrl.TrimEnd('/') + "/");
         DbConnectionString = Environment.GetEnvironmentVariable("ASSIGNMENT_TEST_DB")
-            ?? "Host=localhost;Port=5432;Database=assignments_db;Username=postgres;Password=postgres";
+            ?? EnvironmentConfiguration.GetPostgresConnectionString(new ConfigurationBuilder().AddEnvironmentVariables().Build());
         RunId = DateTimeOffset.UtcNow.ToString("yyyyMMddHHmmss") + "_" + Guid.NewGuid().ToString("N")[..8];
         Prefix = $"qa-it-{RunId}";
         _client = new Lazy<HttpClient>(() => new HttpClient { BaseAddress = BaseUrl, Timeout = TimeSpan.FromSeconds(30) });
@@ -200,7 +204,8 @@ public sealed class ApiIntegrationFixture : IAsyncLifetime
 
     public string CreateExpiredToken(string role = "Admin")
     {
-        var secret = Environment.GetEnvironmentVariable("JWT_SECRET") ?? "SUPER_SECRET_RABBI_IS_AWESOME_DEVELOPER";
+        var config = new ConfigurationBuilder().AddEnvironmentVariables().Build();
+        var secret = EnvironmentConfiguration.GetRequired(config, "JWT_SECRET");
         var issuer = Environment.GetEnvironmentVariable("JWT_ISSUER") ?? "AssignmentSystem";
         var audience = Environment.GetEnvironmentVariable("JWT_AUDIENCE") ?? "AssignmentSystemClients";
         var claims = new[]

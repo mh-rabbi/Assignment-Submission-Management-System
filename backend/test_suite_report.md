@@ -84,7 +84,7 @@ Optional overrides:
 
 ```bash
 ASSIGNMENT_API_BASE_URL=http://localhost:8080 \
-ASSIGNMENT_TEST_DB='Host=localhost;Port=5432;Database=assignments_db;Username=postgres;Password=postgres' \
+ASSIGNMENT_TEST_DB='Host=localhost;Port=5432;Database=<db-name>;Username=<db-user>;Password=<db-password>' \
 dotnet test AssignmentSystem.slnx
 ```
 
