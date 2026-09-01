@@ -146,10 +146,10 @@ app.UseMiddleware<ExceptionMiddleware>();
 
 app.UseSerilogRequestLogging();
 
-if (!app.Environment.IsEnvironment("Docker"))
-{
-    app.UseHttpsRedirection();
-}
+// if (!app.Environment.IsEnvironment("Docker"))
+// {
+//     app.UseHttpsRedirection();
+// }
 
 app.UseAuthentication();
 app.UseAuthorization();
