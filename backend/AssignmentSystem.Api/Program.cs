@@ -134,15 +134,15 @@ using (var scope = app.Services.CreateScope())
 app.UseMiddleware<ExceptionMiddleware>();
 
 // ─── Middleware pipeline ────────────────────────────────────────────────────
-if (app.Environment.IsDevelopment() || app.Environment.IsEnvironment("Docker"))
-{
+//if (app.Environment.IsDevelopment() || app.Environment.IsEnvironment("Docker"))
+//{
     app.UseSwagger();
     app.UseSwaggerUI(c =>
     {
         c.SwaggerEndpoint("/swagger/v1/swagger.json", "AssignmentSystem API v1");
         c.RoutePrefix = "swagger";
     });
-}
+//}
 
 app.UseSerilogRequestLogging();
 
